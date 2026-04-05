@@ -1,6 +1,5 @@
 const path = require("path");
 require("@nomicfoundation/hardhat-toolbox");
-// Contract deploy keys + RPCs live in web3/.env (Next.js uses root .env.local)
 require("dotenv").config({ path: path.join(__dirname, ".env") });
 
 function deployerAccounts() {
@@ -37,6 +36,11 @@ module.exports = {
         "https://ethereum-holesky.publicnode.com",
       accounts: deployerAccounts(),
       chainId: 17000,
+    },
+    hoodi: {
+      url: process.env.HOODI_RPC_URL || process.env.NETWORK_RPC_URL,
+      accounts: deployerAccounts(),
+      chainId: 560048,
     },
   },
   paths: {

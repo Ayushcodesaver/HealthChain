@@ -16,32 +16,33 @@ function walletConnectProjectId() {
   return raw;
 }
 
-const localhostRpc =
-  process.env.NEXT_PUBLIC_LOCALHOST_RPC_URL || "http://127.0.0.1:8545";
+const hoodiRpc =
+  process.env.NEXT_PUBLIC_RPC_URL ||
+  "https://rpc.ankr.com/eth_hoodi/8654e9994ce9c3dbc19b1b0dcdd5d60ac9aad383a941d9226f20c1075f29d443";
 
 const envChainId = Number(process.env.NEXT_PUBLIC_CHAIN_ID);
-const localChainId =
-  Number.isFinite(envChainId) && envChainId > 0 ? envChainId : 1337;
+const hoodiChainId =
+  Number.isFinite(envChainId) && envChainId > 0 ? envChainId : 560048;
 
-const localChainName =
-  (process.env.NEXT_PUBLIC_CHAIN_NAME || "Localhost").trim() || "Localhost";
+const chainName =
+  (process.env.NEXT_PUBLIC_CHAIN_NAME || "Hoodi").trim() || "Hoodi";
 
 const nativeSymbol =
   (process.env.NEXT_PUBLIC_NATIVE_CURRENCY_SYMBOL || "ETH").trim() || "ETH";
 
 const explorerUrl = (process.env.NEXT_PUBLIC_BLOCK_EXPLORER_URL || "").trim();
 
-/** Local Hardhat chain — id/RPC/name match .env.local so MetaMask + viem stay aligned */
-export const localDevChain = defineChain({
-  id: localChainId,
-  name: localChainName,
+export const hoodiChain = defineChain({
+  id: hoodiChainId,
+  name: chainName,
   nativeCurrency: {
     decimals: 18,
     name: "Ether",
     symbol: nativeSymbol,
   },
   rpcUrls: {
-    default: { http: [localhostRpc] },
+    default: { http: [hoodiRpc] },
+    public: { http: [hoodiRpc] },
   },
   ...(explorerUrl
     ? {
@@ -53,7 +54,7 @@ export const localDevChain = defineChain({
 });
 
 const chains = [
-  localDevChain,
+  hoodiChain,
   holesky,
   mainnet,
   polygon,
@@ -67,7 +68,7 @@ export const wagmiConfig = getDefaultConfig({
   projectId: walletConnectProjectId(),
   chains,
   transports: {
-    [localDevChain.id]: http(localhostRpc, { batch: false }),
+    [hoodiChain.id]: http(hoodiRpc, { batch: false }),
     [holesky.id]: http(),
     [mainnet.id]: http(),
     [polygon.id]: http(),
@@ -78,4 +79,4 @@ export const wagmiConfig = getDefaultConfig({
   ssr: true,
 });
 
-export { localDevChain as rainbowInitialChain };
+export { hoodiChain as rainbowInitialChain };
