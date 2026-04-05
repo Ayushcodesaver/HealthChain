@@ -1,0 +1,6 @@
+import React from "react";
+import PatientDashboard from "../../components/patient/PatientDashboard";
+
+export default function PatientIndexPage() {
+  return <PatientDashboard />;
+}

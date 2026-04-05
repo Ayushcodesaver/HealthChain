@@ -1,0 +1,53 @@
+[
+  {
+    "WalletAddress": "0xf39Fd6e51aad88F6F4ce6aB8827279cffFb92266",
+    "FullName": "Dr. John Smith",
+    "PhoneNumber": "+1-202-555-0173",
+    "EmailAddress": "john.smith@healthcare.com",
+    "LanguagesSpoken": ["English", "Spanish", "French"],
+    "CompleteAddress": "123 Medical Center Dr, Healthcare City, HC 12345, USA",
+    "MedicalSpecialization": "Cardiology",
+    "YearsOfExperience": 10,
+    "MedicalLicenseNumber": "NYC-MED-4521",
+    "ConsultationFeeUSD": 100,
+    "MedicalQualifications": ["MBBS", "MD", "Fellowship in Cardiology", "FACC"],
+    "HospitalClinicAffiliation": "City General Hospital",
+    "AvailableHours": "9:00 AM - 5:00 PM (Mon-Fri)",
+    "ProfessionalProfile": "Experienced cardiologist specializing in heart disease, preventive care, and patient wellness. Patient-centered approach with emphasis on lifestyle and evidence-based treatment.",
+    "LicenseDocumentCid": "local-demo-license-cid"
+  },
+  {
+    "WalletAddress": "0x70997970C51812dc3A010C7d01b50e0d17dc79C8",
+    "FullName": "Dr. Emily Johnson",
+    "PhoneNumber": "+1-415-555-0129",
+    "EmailAddress": "emily.johnson@medicare.org",
+    "LanguagesSpoken": ["English", "Mandarin"],
+    "CompleteAddress": "450 Oak Street, San Francisco, CA 94102, USA",
+    "MedicalSpecialization": "Pediatrics",
+    "YearsOfExperience": 12,
+    "MedicalLicenseNumber": "CA-PED-8842",
+    "ConsultationFeeUSD": 125,
+    "MedicalQualifications": ["MD", "Pediatrics Board Certified", "FAAP"],
+    "HospitalClinicAffiliation": "Bay Area Children's Clinic",
+    "AvailableHours": "Mon-Thu 8:00 AM - 4:00 PM, Fri 8:00 AM - 12:00 PM",
+    "ProfessionalProfile": "Dedicated pediatrician focused on developmental health, immunizations, and family education for long-term wellbeing.",
+    "LicenseDocumentCid": "local-demo-license-cid-ped"
+  },
+  {
+    "WalletAddress": "0x3C44CdDd6a720aa69FDE268EFcC3B7AD313cE513",
+    "FullName": "Dr. Michael Chen",
+    "PhoneNumber": "+1-312-555-0198",
+    "EmailAddress": "m.chen@neurocare.org",
+    "LanguagesSpoken": ["English", "Korean"],
+    "CompleteAddress": "88 Brain Health Way, Chicago, IL 60601, USA",
+    "MedicalSpecialization": "Neurology",
+    "YearsOfExperience": 18,
+    "MedicalLicenseNumber": "IL-NEU-3310",
+    "ConsultationFeeUSD": 200,
+    "MedicalQualifications": ["MD, Neurology", "PhD Neuroscience", "FAAN"],
+    "HospitalClinicAffiliation": "Chicago Neurological Institute",
+    "AvailableHours": "Mon-Fri 10:00 AM - 6:00 PM",
+    "ProfessionalProfile": "Neurologist with subspecialty in migraine and movement disorders; integrates advanced imaging with conservative and medical management.",
+    "LicenseDocumentCid": "local-demo-license-cid-neuro"
+  }
+]

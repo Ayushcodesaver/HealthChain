@@ -1,0 +1,13 @@
+node_modules
+.next
+out
+.env
+.env.local
+.env*.local
+build
+coverage
+web3/artifacts
+web3/cache
+web3/node_modules
+*.log
+.DS_Store

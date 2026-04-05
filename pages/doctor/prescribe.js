@@ -1,0 +1,6 @@
+import React from "react";
+import DoctorPrescribeMedicine from "../../components/doctor/DoctorPrescribeMedicine";
+
+export default function DoctorPrescribePage() {
+  return <DoctorPrescribeMedicine />;
+}
