@@ -16,6 +16,7 @@ import Select from "../common/Select";
 import Button from "../common/Button";
 import LoadingSpinner from "../common/LoadingSpinner";
 import { CONTRACT_ABI, CONTRACT_ADDRESS } from "../../config/contract";
+import { gatewayUrl } from "../../utils/ipfs";
 import { cn } from "../common/cn";
 
 const SPECIALIZATIONS = [
@@ -29,6 +30,21 @@ const SPECIALIZATIONS = [
   "Other",
 ];
 
+const EMPTY_EXTRAS = {
+  experienceYears: "",
+  consultationFee: "",
+  email: "",
+  phone: "",
+  hours: "",
+  languages: "",
+  bio: "",
+  licenseNumber: "",
+  affiliation: "",
+  completeAddress: "",
+};
+
+const PROFILE_CID_KEY = "_profileLicenseCid";
+
 function storageKey(addr) {
   return `healthchain-doctor-extras-${(addr || "").toLowerCase()}`;
 }
@@ -38,19 +54,49 @@ function shortAddr(a) {
   return `${a.slice(0, 10)}…${a.slice(-6)}`;
 }
 
+function isDemoLicenseCid(cid) {
+  if (!cid || typeof cid !== "string") return true;
+  const c = cid.trim();
+  return c.length === 0 || c.startsWith("local-demo");
+}
+
+/** @param {Record<string, unknown>} json */
+function mapIpfsProfileToExtras(json) {
+  if (!json || typeof json !== "object") return { ...EMPTY_EXTRAS };
+  const o = json;
+  return {
+    experienceYears:
+      o.yearsOfExperience != null && o.yearsOfExperience !== ""
+        ? String(o.yearsOfExperience)
+        : "",
+    consultationFee:
+      o.consultationFeeUSD != null && o.consultationFeeUSD !== ""
+        ? String(o.consultationFeeUSD)
+        : "",
+    email: typeof o.emailAddress === "string" ? o.emailAddress : "",
+    phone: typeof o.phoneNumber === "string" ? o.phoneNumber : "",
+    hours: typeof o.availableHours === "string" ? o.availableHours : "",
+    languages: typeof o.languagesSpoken === "string" ? o.languagesSpoken : "",
+    bio: typeof o.professionalProfile === "string" ? o.professionalProfile : "",
+    licenseNumber:
+      typeof o.medicalLicenseNumber === "string" ? o.medicalLicenseNumber : "",
+    affiliation:
+      typeof o.hospitalClinicAffiliation === "string"
+        ? o.hospitalClinicAffiliation
+        : "",
+    completeAddress: typeof o.completeAddress === "string" ? o.completeAddress : "",
+  };
+}
+
 const DoctorProfile = () => {
   const { address, isConnected } = useAccount();
   const [editing, setEditing] = useState(false);
   const [showPrivate, setShowPrivate] = useState(false);
-  const [extras, setExtras] = useState({
-    experienceYears: "15",
-    consultationFee: "150",
-    email: "john.smith@healthcare.com",
-    phone: "5551234567",
-    hours: "Mon-Fri 09:00 AM - 05:00 PM",
-    languages: "English, Spanish",
-    bio: "Board-certified physician focused on patient-centered care.",
-  });
+  const [extras, setExtras] = useState(EMPTY_EXTRAS);
+  const [rawProfile, setRawProfile] = useState(null);
+  const [profileIpfsLoading, setProfileIpfsLoading] = useState(false);
+  const [ipfsLoadError, setIpfsLoadError] = useState(false);
+  const [avatarBroken, setAvatarBroken] = useState(false);
 
   const enabled = Boolean(CONTRACT_ADDRESS && address);
 
@@ -71,31 +117,136 @@ const DoctorProfile = () => {
   });
 
   const exists = docRow?.[0];
-  const [, isApprovedOnChain, chainName, specialization, licenseCid] = docRow || [];
+  const [, isApprovedOnChain, doctorNameOnChain, specialization, licenseCid] =
+    docRow || [];
 
   useEffect(() => {
-    if (!address || typeof window === "undefined") return;
-    try {
-      const raw = localStorage.getItem(storageKey(address));
-      if (raw) setExtras((prev) => ({ ...prev, ...JSON.parse(raw) }));
-    } catch {
-      /* ignore */
+    if (!address || !exists) return;
+    let cancelled = false;
+
+    async function loadProfile() {
+      setIpfsLoadError(false);
+      setRawProfile(null);
+
+      if (isDemoLicenseCid(licenseCid)) {
+        setProfileIpfsLoading(false);
+        try {
+          const raw =
+            typeof window !== "undefined"
+              ? localStorage.getItem(storageKey(address))
+              : null;
+          if (raw) {
+            const loc = JSON.parse(raw);
+            const { [PROFILE_CID_KEY]: _cid, ...rest } = loc;
+            if (!cancelled) setExtras({ ...EMPTY_EXTRAS, ...rest });
+          } else if (!cancelled) {
+            setExtras(EMPTY_EXTRAS);
+          }
+        } catch {
+          if (!cancelled) setExtras(EMPTY_EXTRAS);
+        }
+        return;
+      }
+
+      setProfileIpfsLoading(true);
+      try {
+        const url = gatewayUrl(licenseCid);
+        const res = await fetch(url);
+        if (!res.ok) throw new Error("Profile fetch failed");
+        const json = await res.json();
+        if (cancelled) return;
+
+        setRawProfile(json);
+        const mapped = mapIpfsProfileToExtras(json);
+
+        let merged = mapped;
+        try {
+          const raw =
+            typeof window !== "undefined"
+              ? localStorage.getItem(storageKey(address))
+              : null;
+          if (raw) {
+            const loc = JSON.parse(raw);
+            if (loc[PROFILE_CID_KEY] === licenseCid) {
+              const { [PROFILE_CID_KEY]: _c, ...rest } = loc;
+              merged = { ...mapped, ...rest };
+            }
+          }
+        } catch {
+          /* ignore */
+        }
+
+        if (!cancelled) setExtras(merged);
+      } catch {
+        if (!cancelled) {
+          setIpfsLoadError(true);
+          try {
+            const raw = localStorage.getItem(storageKey(address));
+            if (raw) {
+              const loc = JSON.parse(raw);
+              const { [PROFILE_CID_KEY]: _c, ...rest } = loc;
+              setExtras({ ...EMPTY_EXTRAS, ...rest });
+            } else {
+              setExtras(EMPTY_EXTRAS);
+            }
+          } catch {
+            setExtras(EMPTY_EXTRAS);
+          }
+        }
+      } finally {
+        if (!cancelled) setProfileIpfsLoading(false);
+      }
     }
-  }, [address]);
+
+    loadProfile();
+    return () => {
+      cancelled = true;
+    };
+  }, [address, exists, licenseCid]);
 
   const displayName = useMemo(() => {
-    const n = chainName || "Doctor";
-    return n.startsWith("Dr.") ? n : `Dr. ${n}`;
-  }, [chainName]);
+    const fromIpfs =
+      rawProfile &&
+      typeof rawProfile.fullName === "string" &&
+      rawProfile.fullName.trim();
+    const raw = (fromIpfs || doctorNameOnChain || "").trim();
+    if (!raw) return "Doctor";
+    const lower = raw.toLowerCase();
+    if (lower.startsWith("dr.") || lower.startsWith("dr ")) return raw;
+    return `Dr. ${raw}`;
+  }, [rawProfile, doctorNameOnChain]);
 
-  const avatarUrl = useMemo(() => {
+  const photoGatewayUrl = useMemo(() => {
+    const photoCid =
+      rawProfile && typeof rawProfile.photoCid === "string"
+        ? rawProfile.photoCid.trim()
+        : "";
+    if (!photoCid) return "";
+    return gatewayUrl(photoCid);
+  }, [rawProfile]);
+
+  const dicebearUrl = useMemo(() => {
     if (!address) return "";
     return `https://api.dicebear.com/7.x/avataaars/svg?seed=${encodeURIComponent(address)}`;
   }, [address]);
 
+  const avatarUrl =
+    photoGatewayUrl && !avatarBroken ? photoGatewayUrl : dicebearUrl;
+
+  useEffect(() => {
+    setAvatarBroken(false);
+  }, [photoGatewayUrl]);
+
   const saveExtras = () => {
     if (address && typeof window !== "undefined") {
-      localStorage.setItem(storageKey(address), JSON.stringify(extras));
+      const cidForMeta = isDemoLicenseCid(licenseCid) ? "" : licenseCid;
+      localStorage.setItem(
+        storageKey(address),
+        JSON.stringify({
+          ...extras,
+          ...(cidForMeta ? { [PROFILE_CID_KEY]: cidForMeta } : {}),
+        })
+      );
     }
     setEditing(false);
   };
@@ -161,7 +312,7 @@ const DoctorProfile = () => {
               <h1 className="text-2xl font-bold sm:text-3xl">Doctor Profile</h1>
             </div>
             <p className="mt-1 text-sm text-white/90">
-              Manage your professional information and credentials
+              Details from your registration (IPFS) and on-chain record
             </p>
           </div>
           <button
@@ -175,6 +326,19 @@ const DoctorProfile = () => {
         </div>
       </div>
 
+      {profileIpfsLoading ? (
+        <div className="flex justify-center py-8">
+          <LoadingSpinner />
+        </div>
+      ) : null}
+
+      {ipfsLoadError && !isDemoLicenseCid(licenseCid) ? (
+        <p className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-2 text-sm text-amber-900">
+          Could not load your profile file from IPFS (check gateway / CID). Showing saved
+          browser data or blanks.
+        </p>
+      ) : null}
+
       <div className="grid gap-6 lg:grid-cols-[minmax(0,320px)_1fr]">
         <Card padding="p-0" className="overflow-hidden">
           <div className="border-b border-slate-100 p-6 text-center">
@@ -185,6 +349,9 @@ const DoctorProfile = () => {
                   src={avatarUrl}
                   alt=""
                   className="h-full w-full rounded-full border-4 border-teal-100 object-cover bg-white"
+                  onError={() => {
+                    if (photoGatewayUrl) setAvatarBroken(true);
+                  }}
                 />
               ) : (
                 <div className="flex h-full w-full items-center justify-center rounded-full border-4 border-teal-100 bg-teal-50 text-teal-600">
@@ -221,7 +388,9 @@ const DoctorProfile = () => {
             </div>
             <div className="grid grid-cols-2 gap-2">
               <div className="rounded-xl bg-slate-50 p-3 text-center">
-                <p className="text-2xl font-bold text-slate-900">{extras.experienceYears}</p>
+                <p className="text-2xl font-bold text-slate-900">
+                  {extras.experienceYears || "—"}
+                </p>
                 <p className="text-xs text-slate-500">Years</p>
               </div>
               <div className="rounded-xl bg-slate-50 p-3 text-center">
@@ -234,7 +403,11 @@ const DoctorProfile = () => {
 
         <Card
           title="Professional Information"
-          subtitle="On-chain data + optional local details (browser only)"
+          subtitle={
+            isDemoLicenseCid(licenseCid)
+              ? "Demo CID — full profile loads from IPFS after Pinata registration"
+              : "Loaded from your profile on IPFS + on-chain name & specialization"
+          }
           action={
             <button
               type="button"
@@ -251,7 +424,13 @@ const DoctorProfile = () => {
               <p className="text-xs font-semibold uppercase text-slate-500">On-chain</p>
               <dl className="mt-2 space-y-2 text-sm">
                 <div className="flex justify-between gap-4">
-                  <dt className="text-slate-500">License CID</dt>
+                  <dt className="text-slate-500">Registered name</dt>
+                  <dd className="max-w-[60%] text-right text-slate-800">
+                    {doctorNameOnChain || "—"}
+                  </dd>
+                </div>
+                <div className="flex justify-between gap-4">
+                  <dt className="text-slate-500">Profile / license CID</dt>
                   <dd className="max-w-[60%] break-all font-mono text-xs text-slate-800">
                     {licenseCid || "—"}
                   </dd>
@@ -262,10 +441,10 @@ const DoctorProfile = () => {
             {editing ? (
               <>
                 <Input
-                  label="Display name (matches chain until re-registered)"
-                  value={chainName || ""}
+                  label="Display name (on-chain)"
+                  value={doctorNameOnChain || ""}
                   disabled
-                  hint="Update via a new deployment or keep as registered."
+                  hint="Change requires registering again from a new wallet or a contract upgrade."
                 />
                 <Select
                   label="Specialization (on-chain)"
@@ -293,6 +472,27 @@ const DoctorProfile = () => {
                     }
                   />
                 </div>
+                <Input
+                  label="Medical license number"
+                  value={extras.licenseNumber}
+                  onChange={(e) =>
+                    setExtras((x) => ({ ...x, licenseNumber: e.target.value }))
+                  }
+                />
+                <Input
+                  label="Hospital / clinic affiliation"
+                  value={extras.affiliation}
+                  onChange={(e) =>
+                    setExtras((x) => ({ ...x, affiliation: e.target.value }))
+                  }
+                />
+                <Input
+                  label="Complete address"
+                  value={extras.completeAddress}
+                  onChange={(e) =>
+                    setExtras((x) => ({ ...x, completeAddress: e.target.value }))
+                  }
+                />
                 <Input
                   label="Email Address"
                   type="email"
@@ -327,7 +527,7 @@ const DoctorProfile = () => {
                   />
                 </div>
                 <Button type="button" onClick={saveExtras}>
-                  Save local details
+                  Save details (this browser)
                 </Button>
               </>
             ) : (
@@ -338,46 +538,68 @@ const DoctorProfile = () => {
                 </div>
                 <div>
                   <p className="text-xs font-semibold text-slate-500">Specialization</p>
-                  <p className="font-medium text-slate-900">{specialization}</p>
+                  <p className="font-medium text-slate-900">{specialization || "—"}</p>
                 </div>
                 <div>
                   <p className="text-xs font-semibold text-slate-500">Years of Experience</p>
-                  <p className="font-medium text-slate-900">{extras.experienceYears}</p>
+                  <p className="font-medium text-slate-900">
+                    {extras.experienceYears || "—"}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs font-semibold text-slate-500">Consultation Fee ($)</p>
-                  <p className="font-medium text-slate-900">{extras.consultationFee}</p>
+                  <p className="font-medium text-slate-900">
+                    {extras.consultationFee || "—"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-slate-500">License number</p>
+                  <p className="font-medium text-slate-900">
+                    {extras.licenseNumber || "—"}
+                  </p>
+                </div>
+                <div>
+                  <p className="text-xs font-semibold text-slate-500">Affiliation</p>
+                  <p className="font-medium text-slate-900">{extras.affiliation || "—"}</p>
+                </div>
+                <div className="sm:col-span-2">
+                  <p className="text-xs font-semibold text-slate-500">Address</p>
+                  <p className="font-medium text-slate-900">
+                    {extras.completeAddress || "—"}
+                  </p>
                 </div>
                 <div>
                   <p className="text-xs font-semibold text-slate-500">Email</p>
-                  <p className="font-medium text-slate-900">{extras.email}</p>
+                  <p className="font-medium text-slate-900">{extras.email || "—"}</p>
                 </div>
                 <div>
                   <p className="text-xs font-semibold text-slate-500">Phone</p>
                   <p className="font-medium text-slate-900">
                     {showPrivate
-                      ? extras.phone.replace(/(\d{3})(\d{3})(\d{4})/, "$1-$2-$3")
-                      : "***-***-****"}
+                      ? extras.phone || "—"
+                      : extras.phone
+                        ? "***-***-" + extras.phone.slice(-4)
+                        : "—"}
                   </p>
                 </div>
                 <div className="sm:col-span-2">
                   <p className="text-xs font-semibold text-slate-500">Available Hours</p>
-                  <p className="font-medium text-slate-900">{extras.hours}</p>
+                  <p className="font-medium text-slate-900">{extras.hours || "—"}</p>
                 </div>
                 <div className="sm:col-span-2">
                   <p className="text-xs font-semibold text-slate-500">Languages</p>
-                  <p className="font-medium text-slate-900">{extras.languages}</p>
+                  <p className="font-medium text-slate-900">{extras.languages || "—"}</p>
                 </div>
                 <div className="sm:col-span-2">
                   <p className="text-xs font-semibold text-slate-500">Bio</p>
-                  <p className="text-sm text-slate-700">{extras.bio}</p>
+                  <p className="text-sm text-slate-700">{extras.bio || "—"}</p>
                 </div>
               </div>
             )}
           </div>
           <p className="mt-4 text-xs text-slate-400">
-            Editable fields above are stored in this browser only (not on-chain). Name and
-            specialization on-chain require contract support to change.
+            Registration fields are read from the JSON file pinned at your profile CID. Edits
+            here are saved in this browser only unless you register again with new files.
           </p>
         </Card>
       </div>

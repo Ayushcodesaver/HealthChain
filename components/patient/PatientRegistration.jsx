@@ -33,11 +33,27 @@ async function pinFileToPinata(file) {
   return data.IpfsHash;
 }
 
+async function pinJsonToPinata(obj) {
+  if (!PINATA_JWT) return "local-demo-record-cid";
+  const blob = new Blob([JSON.stringify(obj)], { type: "application/json" });
+  const form = new FormData();
+  form.append("file", blob, "patient-profile.json");
+  const res = await fetch("https://api.pinata.cloud/pinning/pinFileToIPFS", {
+    method: "POST",
+    headers: { Authorization: `Bearer ${PINATA_JWT}` },
+    body: form,
+  });
+  if (!res.ok) throw new Error("Pinata profile JSON upload failed");
+  const data = await res.json();
+  return data.IpfsHash;
+}
+
 const PatientRegistration = () => {
   const { address, isConnected } = useAccount();
   const queryClient = useQueryClient();
   const [name, setName] = useState("");
   const [age, setAge] = useState("");
+  const [photoFile, setPhotoFile] = useState(null);
   const [file, setFile] = useState(null);
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState("");
@@ -64,6 +80,10 @@ const PatientRegistration = () => {
     }
   }, [isSuccess, queryClient, address]);
 
+  React.useEffect(() => {
+    if (writeErr) setBusy(false);
+  }, [writeErr]);
+
   const onSubmit = async (e) => {
     e.preventDefault();
     setErr("");
@@ -82,8 +102,30 @@ const PatientRegistration = () => {
     }
     setBusy(true);
     try {
+      let photoCid = "";
+      if (photoFile && PINATA_JWT) {
+        photoCid = await pinFileToPinata(photoFile);
+      }
+      let medicalRecordCid = "";
+      if (file && PINATA_JWT) {
+        medicalRecordCid = await pinFileToPinata(file);
+      }
+
+      const profilePayload = {
+        type: "HealthChainPatientProfile",
+        walletAddress: address,
+        fullName: name.trim(),
+        age: Math.floor(ageNum),
+        photoCid: photoCid || undefined,
+        medicalRecordCid: medicalRecordCid || undefined,
+        medicalRecordFileName: file ? file.name : undefined,
+      };
+
       let recordCid = "local-demo-record-cid";
-      if (file) recordCid = await pinFileToPinata(file);
+      if (PINATA_JWT) {
+        recordCid = await pinJsonToPinata(profilePayload);
+      }
+
       writeContract({
         chainId: DAPP_LOCAL_CHAIN_ID,
         address: CONTRACT_ADDRESS,
@@ -155,7 +197,8 @@ const PatientRegistration = () => {
           <div>
             <h1 className="text-xl font-bold">Patient registration</h1>
             <p className="text-sm text-white/90">
-              Your name, age, and an optional health record file (IPFS) are stored on-chain.
+              Name and age on-chain; a JSON profile (photo + record file CIDs) is pinned to IPFS when
+              Pinata is configured — same idea as doctor registration.
             </p>
           </div>
         </div>
@@ -183,6 +226,15 @@ const PatientRegistration = () => {
             required
           />
           <div>
+            <p className="mb-1.5 text-sm font-medium text-slate-700">Profile photo (optional)</p>
+            <FileUpload
+              label={photoFile ? photoFile.name : "Upload profile photo"}
+              accept="image/*"
+              onFile={setPhotoFile}
+              disabled={busy || isPending || confirming}
+            />
+          </div>
+          <div>
             <p className="mb-1.5 text-sm font-medium text-slate-700">Medical record (optional)</p>
             <FileUpload
               label={file ? file.name : "Upload record PDF / image"}
@@ -192,7 +244,7 @@ const PatientRegistration = () => {
             />
             <p className="mt-1 text-xs text-slate-500">
               {PINATA_JWT
-                ? "Files are pinned via Pinata when NEXT_PUBLIC_PINATA_JWT is set."
+                ? "Photo and record are pinned first; a profile JSON is pinned and its CID is stored on-chain."
                 : "Without Pinata JWT, a placeholder CID is used for local development."}
             </p>
           </div>
