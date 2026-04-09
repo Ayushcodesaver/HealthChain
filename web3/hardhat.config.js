@@ -4,9 +4,20 @@ require("dotenv").config({ path: path.join(__dirname, ".env") });
 
 function deployerAccounts() {
   const pk = process.env.PRIVATE_KEY;
-  if (!pk || typeof pk !== "string") return [];
+
+  if (!pk || typeof pk !== "string") {
+    console.log("❌ PRIVATE_KEY missing in web3/.env");
+    return [];
+  }
+
   const trimmed = pk.trim();
-  if (!trimmed.startsWith("0x") || trimmed.length !== 66) return [];
+
+  if (!trimmed.startsWith("0x") || trimmed.length !== 66) {
+    console.log("❌ PRIVATE_KEY invalid format. Must be 0x + 64 hex chars");
+    return [];
+  }
+
+  console.log("✅ PRIVATE_KEY loaded correctly");
   return [trimmed];
 }
 
@@ -23,24 +34,12 @@ module.exports = {
     },
   },
   networks: {
-    hardhat: {
-      chainId: 1337,
-    },
-    localhost: {
-      url: process.env.LOCALHOST_RPC_URL || "http://127.0.0.1:8545",
-      chainId: 1337,
-    },
-    holesky: {
+    sepolia: {
       url:
-        process.env.NETWORK_RPC_URL ||
-        "https://ethereum-holesky.publicnode.com",
+        process.env.SEPOLIA_RPC_URL ||
+        "https://ethereum-sepolia-rpc.publicnode.com",
       accounts: deployerAccounts(),
-      chainId: 17000,
-    },
-    hoodi: {
-      url: process.env.HOODI_RPC_URL || process.env.NETWORK_RPC_URL,
-      accounts: deployerAccounts(),
-      chainId: 560048,
+      chainId: 11155111,
     },
   },
   paths: {

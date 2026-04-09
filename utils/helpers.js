@@ -1,5 +1,5 @@
 /**
- * Shared UI / formatting helpers for HealthChain.
+ * Shared UI / formatting helpers for Medivault.
  */
 
 /** @type {readonly string[]} */

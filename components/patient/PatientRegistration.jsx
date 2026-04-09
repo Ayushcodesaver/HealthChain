@@ -112,7 +112,7 @@ const PatientRegistration = () => {
       }
 
       const profilePayload = {
-        type: "HealthChainPatientProfile",
+        type: "MedivaultPatientProfile",
         walletAddress: address,
         fullName: name.trim(),
         age: Math.floor(ageNum),

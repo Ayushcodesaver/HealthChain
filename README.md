@@ -1,4 +1,4 @@
-# Blockchain HealthCare DApp
+# Medivault Blockchain HealthCare DApp
 
 ![alt text](https://www.daulathussain.com/wp-content/uploads/2025/09/Build-Deploy-Blockchain-HealthCare-DApp-Solidity-Smart-Contract-Next.js-Web3-Health-DApp-Project.jpg)
 

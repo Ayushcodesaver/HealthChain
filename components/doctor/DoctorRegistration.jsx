@@ -188,7 +188,7 @@ const DoctorRegistration = () => {
       }
 
       const profilePayload = {
-        type: "HealthChainDoctorProfile",
+        type: "MedivaultDoctorProfile",
         walletAddress: address,
         fullName: fullName.trim(),
         phoneNumber: phone.trim(),

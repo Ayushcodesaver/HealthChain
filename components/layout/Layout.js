@@ -32,7 +32,7 @@ const Layout = ({ children }) => {
     return (
       <div className="flex min-h-screen bg-slate-50">
         <Head>
-          <title>HealthChain | Medical DApp Platform</title>
+          <title>Medivault | Medical DApp Platform</title>
           <meta name="viewport" content="width=device-width, initial-scale=1" />
           <meta
             name="description"
@@ -59,7 +59,7 @@ const Layout = ({ children }) => {
   return (
     <div className="flex min-h-screen flex-col bg-slate-50">
       <Head>
-        <title>HealthChain | Decentralized Healthcare Platform</title>
+        <title>Medivault | Decentralized Healthcare Platform</title>
         <meta name="viewport" content="width=device-width, initial-scale=1" />
         <meta
           name="description"

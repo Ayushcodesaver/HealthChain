@@ -184,7 +184,7 @@ const AdminDashboard = () => {
         />
       </div>
 
-      <Card title="Quick actions" subtitle="Manage the HealthChain deployment">
+      <Card title="Quick actions" subtitle="Manage the Medivault deployment">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {[
             { href: "/admin/doctors", label: "Doctor approvals", icon: Stethoscope },

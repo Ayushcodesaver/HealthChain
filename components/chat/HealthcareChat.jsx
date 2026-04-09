@@ -6,7 +6,7 @@ import Card from "../common/Card";
 import Button from "../common/Button";
 import { cn } from "../common/cn";
 
-const STORAGE_KEY = "healthchain-chat-messages-v1";
+const STORAGE_KEY = "medivault-chat-messages-v1";
 
 function loadStored() {
   if (typeof window === "undefined") return null;
@@ -30,7 +30,7 @@ function saveStored(messages) {
 const WELCOME = {
   id: "welcome",
   role: "assistant",
-  text: "Welcome to HealthChain Messages. This is a local demo chat (not on-chain). Ask about appointments, prescriptions, or wallet connection — responses are simulated.",
+  text: "Welcome to Medivault Messages. This is a local demo chat (not on-chain). Ask about appointments, prescriptions, or wallet connection — responses are simulated.",
   at: Date.now(),
 };
 
@@ -46,7 +46,7 @@ function replyFor(input) {
     return "Doctors register on-chain, wait for admin approval, then manage visits and prescriptions.";
   if (q.includes("admin"))
     return "The deployer wallet is the default admin for approvals, catalog, and treasury.";
-  return "Thanks for your message. For real support, use the appropriate HealthChain portal from the navigation. How else can I help?";
+  return "Thanks for your message. For real support, use the appropriate Medivault portal from the navigation. How else can I help?";
 }
 
 const HealthcareChat = () => {
@@ -120,7 +120,7 @@ const HealthcareChat = () => {
         subtitle={
           isConnected
             ? `Connected as ${address?.slice(0, 6)}…${address?.slice(-4)}`
-            : "Connect a wallet to align with your HealthChain identity"
+            : "Connect a wallet to align with your Medivault identity"
         }
         action={
           <button

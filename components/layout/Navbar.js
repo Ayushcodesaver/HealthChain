@@ -25,7 +25,7 @@ const Navbar = () => {
               <Shield className="h-6 w-6" />
             </div>
             <span className="bg-gradient-to-r from-teal-600 to-cyan-700 bg-clip-text text-2xl font-bold text-transparent">
-              HealthChain
+              Medivault
             </span>
           </Link>
 

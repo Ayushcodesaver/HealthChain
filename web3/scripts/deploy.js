@@ -1,21 +1,32 @@
-const hre = require("hardhat");
-
 async function main() {
-  const [deployer] = await hre.ethers.getSigners();
+  const { ethers } = require("hardhat");
+
+  const signers = await ethers.getSigners();
+  console.log("Signers found:", signers.length);
+
+  const deployer = signers[0];
+
+  if (!deployer) {
+    throw new Error(
+      "No deployer account found. Check web3/.env PRIVATE_KEY and hardhat.config.js sepolia accounts."
+    );
+  }
+
   console.log("Deploying Healthcare with account:", deployer.address);
 
-  const balance = await deployer.getBalance();
-  console.log("Account balance:", hre.ethers.utils.formatEther(balance), "ETH");
+  const balance = await ethers.provider.getBalance(deployer.address);
+  console.log("Account balance:", ethers.utils.formatEther(balance), "ETH");
 
-  const Healthcare = await hre.ethers.getContractFactory("Healthcare");
+  const Healthcare = await ethers.getContractFactory("Healthcare");
   const healthcare = await Healthcare.deploy();
+
   await healthcare.deployed();
 
-  const address = healthcare.address;
-  console.log("Healthcare deployed to:", address);
+  console.log("Healthcare deployed to:", healthcare.address);
+
   console.log(
     "\nSet in the project root .env.local:\nNEXT_PUBLIC_CONTRACT_ADDRESS=" +
-      address
+      healthcare.address
   );
 }
 

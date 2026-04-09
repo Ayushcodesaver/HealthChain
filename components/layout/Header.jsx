@@ -55,7 +55,7 @@ const Header = ({ roleLabel = "guest", onMenuClick, className = "" }) => {
           <BrandMark />
           <div className="min-w-0">
             <p className="truncate text-sm font-bold text-slate-900 sm:text-base">
-              HealthChain
+              Medivault
             </p>
             <p className="truncate text-xs text-slate-500">
               Decentralized Healthcare Platform

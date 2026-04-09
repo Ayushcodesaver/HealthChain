@@ -239,8 +239,8 @@ const LandingPage = () => {
           <div className="mb-16 text-center">
             <h2 className="text-3xl font-bold text-gray-900 md:text-4xl">Choose Your Portal</h2>
             <p className="mx-auto mt-4 max-w-2xl text-lg text-gray-600">
-              Access the MediVault platform through role-specific interfaces designed for your
-              specialized needs — now unified as <strong>HealthChain</strong>.
+              Access the Medivault platform through role-specific interfaces designed for your
+              specialized needs — now unified as <strong>Medivault</strong>.
             </p>
           </div>
 

@@ -46,7 +46,7 @@ const EMPTY_EXTRAS = {
 const PROFILE_CID_KEY = "_profileLicenseCid";
 
 function storageKey(addr) {
-  return `healthchain-doctor-extras-${(addr || "").toLowerCase()}`;
+  return `medivault-doctor-extras-${(addr || "").toLowerCase()}`;
 }
 
 function shortAddr(a) {

@@ -105,7 +105,7 @@ const DoctorsList = () => {
       <div>
         <h1 className="text-3xl font-bold text-slate-900">Find Doctors</h1>
         <p className="mt-1 text-slate-600">
-          Verified providers registered on HealthChain (admin-approved on-chain).
+          Verified providers registered on Medivault (admin-approved on-chain).
         </p>
       </div>
 

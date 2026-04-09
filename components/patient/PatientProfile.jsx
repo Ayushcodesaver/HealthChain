@@ -79,7 +79,7 @@ const PatientProfile = () => {
           setLegacyRecordCid(recordCid);
           return;
         }
-        if (json?.type === "HealthChainPatientProfile") {
+        if (json?.type === "MedivaultPatientProfile") {
           setRawProfile(json);
         } else {
           setLegacyRecordCid(recordCid);

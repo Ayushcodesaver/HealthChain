@@ -12,11 +12,11 @@ const Footer = () => {
               <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-teal-500 to-cyan-600 text-white">
                 <Shield className="h-6 w-6" />
               </div>
-              <span className="text-2xl font-bold text-slate-900">HealthChain</span>
+              <span className="text-2xl font-bold text-slate-900">Medivault</span>
             </Link>
             <p className="mb-6 max-w-sm text-slate-500">
               Securing healthcare workflows with Web3 — patient privacy, verifiable
-              credentials, and transparent records aligned with your HealthChain
+              credentials, and transparent records aligned with your Medivault
               dashboard experience.
             </p>
             <div className="flex space-x-4">
@@ -104,7 +104,7 @@ const Footer = () => {
 
         <div className="mt-12 flex flex-col items-center justify-between gap-4 border-t border-slate-200 pt-8 md:flex-row">
           <p className="text-sm text-slate-400">
-            &copy; {new Date().getFullYear()} HealthChain DApp. All rights reserved.
+            &copy; {new Date().getFullYear()} Medivault DApp. All rights reserved.
           </p>
           <div className="flex space-x-6 text-sm text-slate-400">
             <a href="#" className="hover:text-slate-800">

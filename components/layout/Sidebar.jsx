@@ -30,7 +30,7 @@ const BrandBlock = () => (
     </div>
     <div className="min-w-0">
       <p className="truncate text-lg font-bold tracking-tight text-slate-900">
-        HealthChain
+        Medivault
       </p>
       <p className="truncate text-xs text-slate-500">Medical DApp Platform</p>
     </div>
